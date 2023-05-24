@@ -30,7 +30,8 @@ Let’s first investigate the calories of different drinks. Select the variables
 ```{r}
 drinks_content %>% 
   select(Beverage_category, Beverage, Beverage_prep, Calories) %>% 
-  is.na()
+  filter(!is.na(Calories))
+
 
 #was no na but if data is bigger might be harder to work that out, is easy way?
 ```
@@ -40,9 +41,12 @@ Question 3.
 Create a new variable (column) called calorie_diff, which stores the difference between 135 calories (135 calories = 10 cubes of sugar!) and the calories in each drink. (hint: you’ll want to subtract 135 from the calories to see which drink have more or less than 10 cups of sugar).
 
 ```{r}
-drinks_content %>% 
-mutate(calories_diff = Calories - 135) %>% 
-  filter(calories_diff )
+
+  drinks_calories <- drinks_content %>%
+  mutate(calories_diff = Calories - 135)
+
+drinks_calories
+  
   
 
   #not sure what it means about the suger 
@@ -68,8 +72,8 @@ Let’s look at this a different way. What is the average number of calories in 
 ```{r}
 drinks_content %>% 
   group_by(Beverage_prep) %>% 
- summarise(average_cal = mean(Calories))
-
+ summarise(average_cal = mean(Calories)) %>% 
+  arrange(desc(average_cal))
 
 ```
 
@@ -82,13 +86,15 @@ Hint
 
 ```{r}
 average_cal <- drinks_content %>% 
-  summarise(average_val = mean(Calories))
+  summarise(average_val = mean(Calories)) %>% 
+  pull()
 
-average_cal
+#drinks_content %>% 
+  #group_by(Beverage_prep) %>% 
+  #summarise(is_cal_over_average = Calories > average_cal)
 
-drinks_content %>% 
-  group_by(Beverage_prep) %>% 
-  summarise(is_cal_over_average = Calories > average_cal)
+above_avg <- average_cal %>% 
+  filter(mean_cals >= average_cal)
 #dont think this is correct as all false
 
 ```
