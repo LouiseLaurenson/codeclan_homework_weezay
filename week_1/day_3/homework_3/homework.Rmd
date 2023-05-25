@@ -38,8 +38,9 @@ Ok, now take your subsetted data movies_selected, and count the number of missin
 
 ```{r}
 movies_selected %>% 
-  filter(is.na("movies_selected"))
-
+  summarise(na_runtime = sum(is.na(runtime)),
+            na_title = sum(is.na(title)),
+            na_budget = sum(is.na(budget)))
 #none 
 ```
 
@@ -120,10 +121,10 @@ Hint:
 )
 
 ```{r}
-movies_imputed %>% 
+movie_budgets <- movies_imputed %>% 
   mutate(budget_type = case_when(
     budget < 12e6 ~ "Small Budget",
-    budget = 12e6 ~ "Big budget",
+    budget < 40e6 ~ "Big budget",
     budget > 40e6 ~ "Big Budget"
                                  ))
 ```
