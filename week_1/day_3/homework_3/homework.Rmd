@@ -41,6 +41,10 @@ movies_selected %>%
   summarise(na_runtime = sum(is.na(runtime)),
             na_title = sum(is.na(title)),
             na_budget = sum(is.na(budget)))
+
+# new way to do it 
+moives_selected %>% 
+  summarise(across(.cols = everything(), .fin = ~ sum(is.na(.x))))
 #none 
 ```
 
@@ -78,6 +82,13 @@ Question 6.
 Finally, use the slice_min and slice_max functions on movies_imputed to get the movies with the 10 shortest and 10 longest runtimes.
 
 ```{r}
+
+movies_imputed %>%  
+  slice_max(runtime, n = 10)
+
+movies_imputed %>%  
+  slice_min(runtime, n = 10)
+
 #not learned this yet
 ```
 
@@ -93,8 +104,7 @@ median_budget <-movies_imputed %>%
   summarise(median(budget)) %>% 
   pull()
 
-  #mutate(budget = as.numeric(budget)) %>% 
-  
+
 movies_imputed <- movies_imputed %>%
   mutate(budget = if_else(budget < 100, median_budget, budget))
 
@@ -127,5 +137,19 @@ movie_budgets <- movies_imputed %>%
     budget < 40e6 ~ "Big budget",
     budget > 40e6 ~ "Big Budget"
                                  ))
+```
+
+Question 2.
+
+Take the original dataset with all the variables. Using across and where, summarise the number of missing values, first across all columns of type character, and then across all columns of type numeric.
+
+
+```{r}
+moives %>% 
+  summarise(across(
+    .cols = where(is.character), 
+    .fin = ~ sum(is.na(.x))))
+
+
 ```
 
