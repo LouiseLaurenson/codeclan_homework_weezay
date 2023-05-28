@@ -1,0 +1,117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+## load librarys 
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+## read in data 
+
+```{r}
+book_data <- read.csv("data/books.csv")
+```
+
+## Lets look at the data 
+
+```{r}
+nrow(book_data)
+ncol(book_data)
+dim(book_data)
+names(book_data)
+head(book_data)
+tail(book_data)
+glimpse(book_data)
+view(book_data)
+summary(book_data)
+
+```
+
+Questions 
+
+1. What are the top 5 books with the highest rating book not in english
+
+```{r}
+
+book_data %>% 
+  select(title, language_code, average_rating) %>% 
+  filter(!language_code %in% c("eng", "en-US", "en-CA", "en-GB")) %>% 
+  arrange(desc(average_rating)) %>% 
+  head(5)
+
+#couldnt get the conatains function to work here?
+  
+```
+
+2.  books that have a raiting of 5?  
+
+```{r}
+books_with_five_rating <- book_data %>% 
+  select(title, publisher, average_rating) %>% 
+  filter(average_rating == 5.00)
+
+books_with_five_rating
+
+```
+3. which publish is most common with a five star rating 
+
+```{r}
+books_with_five_rating %>% 
+  group_by(publisher) %>% 
+  summarise(total_times = n(),
+            .groups = "drop") %>% 
+  arrange(desc(total_times))
+```
+
+4. In the years between 1995 and 2000 what was avarage book size 
+
+```{r}
+
+book_data %>% 
+
+  select(publication_date, num_pages) %>% 
+  filter(publication_date > "1/1/1995") %>% 
+  filter(publication_date < "31/12/1999") %>% 
+  summarise(mean(num_pages))
+
+         
+```
+
+
+5. total number of text and ratings reviews recived on a book - which book recived the most ratings? 
+
+```{r}
+book_data %>% 
+  select(title, ratings_count, text_reviews_count) %>% 
+  mutate(total_review_raitng_count = ratings_count + text_reviews_count) %>% 
+  arrange(desc(total_review_raitng_count)) %>% 
+  head(1)
+```
+
+6. which publishing date has the most reviews
+
+```{r}
+book_data %>% 
+  mutate(total_review_raitng_count = ratings_count + text_reviews_count) %>% 
+  select(text_reviews_count, publication_date) %>% 
+  arrange(desc(text_reviews_count)) %>% 
+  head(1)
+```
+7. which auther most commin in books ratie from 4-5
+
+```{r}
+books_with_five_rating_author <- book_data %>% 
+  select(title, authors, average_rating) %>% 
+  filter(average_rating > 4.00) %>% 
+  group_by(authors) %>% 
+  summarise(total_times = n(),
+            .groups = "drop") %>% 
+  arrange(desc(total_times))
+
+books_with_five_rating_author %>% 
+  head(1)
+```
+```
+
