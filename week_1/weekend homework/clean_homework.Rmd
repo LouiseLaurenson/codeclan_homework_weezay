@@ -56,10 +56,12 @@ books_with_five_rating %>%
 book_data %>% 
 
   select(publication_date, num_pages) %>% 
+  # mutate(publication_date = as.double(publication_date)) %>% 
   filter(publication_date > "1/1/1995") %>% 
   filter(publication_date < "31/12/1999") %>% 
   summarise(mean(num_pages))
 
+#not sure how to get working 
          
 ```
 
@@ -97,5 +99,46 @@ books_with_five_rating_author <- book_data %>%
 books_with_five_rating_author %>% 
   head(1)
 ```
+
+
+In class questions 
+
+1. how many books in each language?
+
+```{r}
+
+books_per_language <- books %>% # assign to new df to reuse later
+  group_by(language_code) %>% 
+  summarise(num_of_books = n()) %>%  # Number of books in each language
+  arrange(desc(num_of_books))
+
+books_per_language
+
+#could use count
+
+book_data %>% 
+  count(language_code)
+
+```
+
+2. Any similatries betwwen top rated books - also rempove not a book, and at least have 100 rating
+
+```{r}
+
+purged <- book_data %>% 
+  filter(!authors == "NOT A BOOK")
+
+purged %>% 
+  filter(ratings_count >= 100) %>% 
+  slice_max(average_rating, n = 5)
+
+```
+3. do more recently published book revive a higher reviews than older 
+
+```{r}
+book_data %>% 
+  filter(ratings_count > 1) %>% 
+  select(title, authors, publication_date, average_rating) %>% 
+  mutate(as.Date(publication_date, "%m %d %Y"))
 ```
 
