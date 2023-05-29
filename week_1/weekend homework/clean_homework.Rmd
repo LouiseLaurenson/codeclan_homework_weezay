@@ -139,6 +139,49 @@ purged %>%
 book_data %>% 
   filter(ratings_count > 1) %>% 
   select(title, authors, publication_date, average_rating) %>% 
-  mutate(as.Date(publication_date, "%m %d %Y"))
+  mutate(year = format(as.Date(publication_date, format = "%m %d %Y"), "%Y"), 
+         .before = publication_date) %>% 
+  summarise(across(.cols = everything(), .fin = ~ sum(is.na(x))))
+
+
+```
+
+```{r}
+# We start again with the min1_rating dataset
+book_data %>% 
+  select(title, authors, publication_date, average_rating) %>% 
+  # lets focus on years only
+  mutate(year = format(as.Date(book_data$publication_date,
+                               format="%m/%d/%Y"), "%Y"),
+                       .before = publication_date) %>% 
+# Let's just create 2 groups, before 2000 is 'old' and younger than 2000 'new'
+mutate(age = case_when(
+  year <2000 ~ "old",
+  year >=2000 ~ "young"
+), .after = year) %>% 
+ # filter(is.na(year)) # there are 2 books that have NA for year, but publication date is like normal?!
+  group_by(age) %>% 
+  summarise(average_rating = mean(average_rating))
+  
+# In conclusion: 'old' books have an average rating of 3.95, 'young' 3.93
+# old win!
+```
+4. which languages has JK rowling publied in
+
+```{r}
+book_data %>% 
+  select(authors, language_code) %>% 
+  mutate(JK = str_detect(authors, "J.K. Rowling"), .after = authors) %>% 
+  filter(JK == TRUE) %>% 
+  distinct(language_code)
+
+```
+
+5. are there missing vaules in the data 
+
+```{r}
+book_data %>% 
+  summarise(across(.cols = everything(), .fns = 
+                     ~sum(is.na(.x))))
 ```
 
