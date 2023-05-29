@@ -181,7 +181,7 @@ book_data %>%
 
 ```{r}
 book_data %>% 
-  summarise(across(.cols = everything(), .fns = 
-                     ~sum(is.na(.x))))
+  summarise(across(.cols = everything(), 
+                   .fns = ~sum(is.na(.x))))
 ```
 
