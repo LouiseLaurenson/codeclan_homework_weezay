@@ -114,8 +114,8 @@ Can you join all 4 datasets together so that you're left with a dataset that loo
 
 ```{r}
 all_data <- inner_join(card_customer, fraud_trans, by = c("card_number" = "credit_card_id")) %>% 
-            arrange(fraud_flag)#%>% 
-           # head(109)
+            arrange(fraud_flag) %>% 
+            head(109)
 
 all_data
 ```
