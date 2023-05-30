@@ -113,13 +113,22 @@ date_fix %>%
 Can you join all 4 datasets together so that you're left with a dataset that looks like below with **109 rows** and **12 columns**?
 
 ```{r}
-all_data <- full_join(card_customer, fraud_trans, by = c("card_number" = "credit_card_id")) %>% 
-            arrange(fraud_flag) %>% 
-            head(109)
+all_data <- inner_join(card_customer, fraud_trans, by = c("card_number" = "credit_card_id")) %>% 
+            arrange(fraud_flag)#%>% 
+           # head(109)
+
+all_data
 ```
 
 
 ![](images/all_joined.png)
+```{r}
+card %>% 
+inner_join(customer, by = "cust_id") %>% 
+inner_join(transactions, by = c("card_number" = "credit_card_id")) %>% 
+inner_join(fraud, by = "transaction_id")
+
+```
 
 ## `tidyr`
 
