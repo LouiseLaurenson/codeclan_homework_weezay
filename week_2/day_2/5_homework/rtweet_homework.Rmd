@@ -113,7 +113,7 @@ The `code_clan_info.csv` data file contains `status_url` along with other info. 
 ```{r}
 status <- read.csv("data/code_clan_info.csv")
 
-tweet_status <- full_join(tweets, status, by = "tweet_id")
+tweet_status <- left_join(tweets, status, by = "tweet_id")
 ```
 
 
@@ -126,6 +126,7 @@ codeclan_hashtags <- tweet_status %>%
   mutate(hashtags = str_to_lower(hashtags)) %>% 
   drop_na(hashtags)
 
+codeclan_hashtags
 
 ```
 
@@ -142,8 +143,16 @@ Try a regex pattern `"c\\("`. The double backslash is necessary in R to mark a b
 </details>
 
 ```{r}
-codeclan_hashtags %>% 
-  str_sub(hashtags, start
+hashtags_multiple <- codeclan_hashtags %>% 
+  mutate(first_letters = str_sub(hashtags, 1, 2)) %>%
+  filter(str_detect(first_letters, "c\\("))
+
+hashtags_multiple          
+
+another way:
+hashtags_multiple <- codeclan_hashtags %>% 
+  filter(str_detect(first_letters, "^c\\("))
+
 ```
 <br>
 
@@ -154,7 +163,13 @@ Use the `str_detect()` function to find all tweets with `text` that mentions "Ed
 You may need to make sure your tweets are all the same case before searching.
 </details>
 
-<br>
+```{r}
+tweets %>%
+  mutate(lowcase_tweets = str_to_lower(text)) %>%
+  filter(str_detect(lowcase_tweets, "edinburgh")) %>%
+  summarise(count = n())
+```
+
 
 **Question 10.**  
 Use `str_extract_all()` with a regular expression to find out which Twitter users CodeClan have been tweeting. 
@@ -162,4 +177,11 @@ Use `str_extract_all()` with a regular expression to find out which Twitter user
 <summary>**Hint**</summary>
 Think about all the different characters which could be in a Twitter username, do a bit of online research
 </details>
+
+```{r}
+user_pattern <- "@[a-zA-Z0-9_]+"
+tweets <- tweets %>% 
+  select(text)
+head(str_extract_all(tweets$text, user_pattern))
+```
 
