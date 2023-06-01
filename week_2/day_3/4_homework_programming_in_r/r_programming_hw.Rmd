@@ -28,9 +28,9 @@ Find the weather forecast for the next three days online. Create a list of lists
 
 
 weather_in_larbert <- list(
-  Thur = list(temp = 17, weather = "cloudy", wind_speed = 11),
-  Fri = list(temp = 20, weather = "sunny", wind_speed = 9),
-  Sat = list(temp = 19, weather = "rain", wind_speed = 10)
+  "Thur" = list(temp = 17, weather = "cloudy", wind_speed = 11),
+  "Fri" = list(temp = 20, weather = "sunny", wind_speed = 9),
+  "Sat" = list(temp = 19, weather = "rain", wind_speed = 10)
 )
 
 
