@@ -110,7 +110,7 @@ my_function(10)
 
 my_function(11)
 
-my_function(3)
+my_function("14")
 ```
 
 **Question 6.** \
@@ -130,20 +130,33 @@ Write a function which checks if two vectors have the same elements.
 
 ```{r}
 
-x <- c("noddles", "pasta", "chips")
-y <- c("mushroom", "cucumber", "chips")
+a <- c(1, 2, 3, 4, 5)
+b <- c(1, 4, 2, 3, 5)
+c <- c(9, 4, 8, 1, 0)
 
-checks <- function(same){
-  if(identical(x = y)){
-    print("Exactly the same")
-  } 
-  
-  #brain lost! look at in the morning! :@!!
-  
-  
+# checks <- function(same){
+#   if(identical(x = y)){
+#     print("Exactly the same")
+#   } 
+#   
+#   #brain lost! look at in the morning! :@!!
+#   
+# }
+
+
+is_same_vector <- function(vector_1, vector_2) {
+  if (all(vector_1 == vector_2)) {
+    return("Exactly the same")
+  }
+
+  if (all(sort(vector_1) == sort(vector_2))) {
+    return("The same")
+  }
+
+  return("Different")
 }
 
-checks(x y)
+is_same_vector(c, a)
 
 ```
 
@@ -161,6 +174,19 @@ Write code that prints a multiplication table for numbers up to 12. i.e. there w
 
 <br>
 
+```{r}
+mult_table <- matrix(nrow = 12, ncol = 12)
+
+for (outer_factor in 1:12){
+  for (inner_factor in 1:12){
+    mult_table[outer_factor, inner_factor] = outer_factor * inner_factor
+  }
+}
+
+mult_table
+```
+
+
 **Question 8.** \
 Write a function that takes a vector, and creates a text art histogram, like the one below.
 
@@ -176,5 +202,27 @@ should produce the histogram below - the histogram dislpays the number of times 
 3 | *******
 4 | ****
 5 | **
+```
+
+```{r}
+make_histogram <- function(x){
+  
+  distinct <- sort(unique(x))
+  
+  for (i in distinct){
+    
+    count <- sum(x == i)
+    
+    cat(i)
+    cat(" | ")
+    cat(rep("*", count))
+    cat("\n")
+    
+  }
+  
+}
+
+numbers <- sample(1:5, size = 50, replace = TRUE) 
+numbersß
 ```
 
