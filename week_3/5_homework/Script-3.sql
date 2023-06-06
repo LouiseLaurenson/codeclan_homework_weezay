@@ -49,7 +49,7 @@ WHERE local_account_no IS NULL;
 -- Question 6.
 -- Are there any pay_details records lacking both a local_account_no and iban number?
 
-SELECT count(*) 
+SELECT count(id) 
 FROM pay_details
 WHERE local_account_no IS NULL AND iban IS NULL 
 
@@ -142,8 +142,9 @@ department NOTNULL;
 
 --[If you’re really keen - try adding the month as a string: ‘Bob Smith - Legal (joined July 1998)’]
 
-SELECT concat(first_name, ' ', last_name, ' - ', department, ' (joined ', 
-(SELECT TO_CHAR(start_date, 'Month')), 
+SELECT 
+concat(first_name, ' ', last_name, ' - ', department, ' (joined ', 
+(SELECT TO_CHAR(start_date, 'FMMonth ')), 
 EXTRACT(YEAR FROM start_date), ')') AS bagge_label 
 FROM employees
 WHERE 
