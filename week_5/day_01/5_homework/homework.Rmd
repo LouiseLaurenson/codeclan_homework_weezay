@@ -75,14 +75,16 @@ Make a line chart showing monthly revenue and costs over the last year. This dat
 
 ```{r}
 monthly_sales %>% 
-  filter(Cashflow == "Cost") %>% 
+  filter(Cashflow != "Kwikbit Unit 1 Sales") %>% 
   filter(Date > "2019-01-01") %>% 
   ggplot() +
-  aes(x = Date, y = Amount) +
+  aes(x = Date, y = Amount, colour = Cashflow) +
   geom_line() +
   labs(
     title = "2019 costs"
-  )
+  ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%d-%b-%y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 ```
@@ -139,7 +141,7 @@ device_data %>%
   ggplot()+
   aes(x= hours, y = counts, colour = device) +
   geom_line() +
-  facet_grid(~ device)
+  facet_grid(id ~ device)
 
 ```
 
@@ -192,7 +194,7 @@ monthly_sales %>%
   filter(Date > "2019-01-01") %>% 
   ggplot() +
   aes(x = Date, y = Amount) +
-  geom_line(colour = "#E89FE9") +
+  geom_line(colour = "#E89FE9", size = 2) +
   labs(
     title = "2019 Sales for KwikBit Unit "
   ) +
@@ -276,12 +278,16 @@ Now the company wants to compare the number of steps that their device counts vs
 
 ```{r}
 
+device_data <- 
+mutate(device_data, decimal_hour = hours + (mins/60))
+
+
 device_data %>% 
   filter(counts > 0) %>% 
   ggplot()+
-  aes(x= hours, y = counts, colour = device) +
+  aes(x= decimal_hour, y = counts, colour = device) +
   geom_line() +
-  facet_grid(~ device) +
+  facet_grid(id ~ device) +
   theme_minimal() + 
   labs(title = "Number of steps by counted by cometitors") +
   scale_color_manual(
