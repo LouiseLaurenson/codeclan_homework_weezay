@@ -1,0 +1,122 @@
+---
+title: "R Notebook"
+output: html_notebook
+
+---
+
+#learning obj
+
+- Know how to include HTMN in a shiny app 
+_ know how to include CSS in a shiny app
+- be able to use themes and UI layouts in shiny 
+
+so far we've looked at simple UIs
+shiney also allows us to fully customise the app's design using 
+Shiny functions, HTML, CSS or Javascript inswde the apps code 
+- alsp pre-exsitn thense we can us e
+
+
+#HTML
+Hypertext Markup Lanagauga - standered lanf use to define webpage structure
+
+Can elave the UI of a shiny app by adding custom HTML not orivide by shines
+
+E.G <i> text </i> for italics
+
+#using tags for HTML 
+
+Rneeds to be able to understand what is R code and what is HTML etc
+
+can use functions inside `tags` from the shiny package 
+
+e.g italices 
+```{r}
+tags$i("some text")
+```
+
+```{r}
+tags$b("hello")
+```
+
+
+e.g attributes (can be given to the tage with named argument )
+
+```{r}
+
+tags$a("Codeclan's Website", href = "https://codeclan.com")
+
+```
+
+
+# Themes 
+
+You canquculiy change the look of your app by using any one of the thmese aviavile in the `bslib` package rather than worry anout 
+HTML and CSS
+
+cheeck out bootswatch.com to see them all 
+
+Inside the `fluidpage` fucntion give the theme argumnet a vaule 
+
+`theme = bs_theme(bootswatch = "name of theme")`
+
+e.g
+
+```{r eval = FALSE}
+
+library(bslib)
+
+ui <- fluidPage(
+  theme = bs_theme(bootswatch = "flatly"),
+)
+
+```
+
+
+By far the eaisest way to contol the way your UI looks 
+
+Can write your own custom themes, but that involves something called CSS
+
+
+- in the notes if intersted 
+
+# Other layouts 
+
+so far we been using sidebar layout  - lots of other avaialbe 
+
+
+Today we will the grid layout and adding tabs 
+
+use `fluid row` with `colunm` and `width` to specifiy where on the gruid our wdigets go 
+
+#tabs 
+
+can be added into any layout 
+
+you suse the function `tabsetPanel` with diffenret `tabpanel` 
+elemnets inside
+
+first argument to tabpanel is the name at the top of the tab then UI element 
+```{r}
+
+
+tabsetPanel(
+  tabPanel("first tab",
+           "first tab contenet"),
+  tabPanel("second tab",
+           "second tab conctect here")
+  
+)
+
+
+```
+
+
+lets edit our lympics app to have tabs instead of rows 
+
+- a tab that only has our plot
+- tab only radio buttons 
+- a tab team in put 
+
+
+
+

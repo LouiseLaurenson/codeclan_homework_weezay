@@ -1,0 +1,178 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#obj
+
+-- know how to crrat a basic shiny app
+-- understand how to use imputs and outputs to create interactivity
+
+# whats a shiny app 
+
+Its a way of developing interactive web applications thorught writting r code 
+- interactive exploriont of data
+- can be basic, can be very complicated
+
+
+# Basic shinny app
+
+```{r eval = FALSE}
+
+library(shiny)
+
+ui <- fluidPage() #defin e the user interface (determines the layout and apperance of the app, you can use other but this will do)
+
+server <- function(input, output) {
+  #define the server, this defines the logic of our app
+  
+}
+
+shinyApp(ui = ui, server = server) #run fucntion with ui and serevr as inputs
+
+```
+
+
+You can add more ui emlements inside both the sidepabpanel and the main panale, sepearted by a comma
+
+use `br()` to add line breaks
+
+lots of layouts available - can see this in the shiny doc 
+
+# widgets 
+
+the interactibe parts of teh app and have the basic stucters
+
+```{r eval = FALSE}
+ 
+widgetInput(inpitID = "id", # serverr frienly widget lable
+            label = "widget label", # human friendly widget label,
+            choices = c("choice A", "choice B")
+            
+            )
+
+```
+
+Lets out some radio buttion in our sidebar ]
+
+
+```{r eva = FALSE}
+
+radioButtons(inputId = "season_input",
+             label = "Summer or Winter Olympics?",
+             choices = c("Summer", "Winter"))
+
+```
+
+Current radio buttons not connect to anything in the sever logic
+
+- we,ve only changed the ui 
+
+Add a selectInput widget to the UI that allows you to choose between the teams “United States”, “Soviet Union”, “Germany”, “Italy”, and “Great Britain”.
+
+
+```{r}
+
+radioButtons(inputId = "country_input",
+             label = "Country",
+             choices = c("United States", "Soviet Union", "Germany", "Italy", "Great Britain"))
+
+
+```
+
+#The server
+
+While the UI defines how our app looks the server is everything that haapnes behing the sceen 
+
+Deals with inputs from the user/UI and creats outpots for the app 
+
+## Creating outputs 
+
+The key word here is 'render
+e.g to make a plot output we use 'render Plot' to creat  a text output we use 'rendertext, a table needs 'renderTable
+
+Lets ,ale a simple plot showing medlas won by briten in the summer olymics
+
+```{r}
+
+library(tidyverse)
+
+olympics_overall_media <- read_csv("2_basic_shiny_apps/data/olympics_overall_medals.csv")
+
+```
+
+```{r}
+
+olympics_overall_media %>% 
+  filter(team == "Great Britain") %>% 
+  filter(season == "Summer") %>% 
+  ggplot() +
+  aes(x = medal, y = count, fill = medal)+
+  geom_col(show.legend = FALSE)
+  
+
+```
+
+Okay se we have a plot that works, now we need to"
+
+1. wrap the code in render plot 
+2. assing vaule to an output slot 
+3. put this all inside the server function 
+4. chnage the UI accordinly 
+
+currenlty the inputs and outputs are not connected so the plots doesnt change when we select countries/seasons 
+
+#using inputs 
+
+These come from the widgets - inputs will have dif vaules depending action of the user
+
+e.g. summer or winter - reffere to as `input$season_input`
+
+```{r eval = FALSE}
+# in ui:
+selectInput("team_input",
+          "Which Team?",
+          choices = c("United States",
+                      "Soviet Union",
+                      "Germany",
+                      "Italy",
+                      "Great Britain")
+          
+# in server:
+output$medal_plot <- renderPlot({
+
+    olympics_overall_medals %>%
+      filter(team == input$team_input) %>%
+      filter(season == input$season_input) %>%
+      ggplot() +
+      aes(x = medal, y = count, fill = medal) +
+      geom_col()
+  })
+```
+
+#code outside the ui and server
+
+we placed liabry call before ui and server
+- run as soon as the app is lanched
+- makes it easy to write code that can be used by either ui or server
+
+could make an object here of all team names 
+
+```{r}
+all_teams <- olympics_overall_media %>% 
+  distinct(team) %>% 
+  pull()
+```
+
+There we go an app!!
+
+# tips 
+
+shiny is tricky, hard to keep track of wehat everything does and keeps the brackets organies 
+
+
+- indernrs everything correclty 
+- ranbow brackets 
+- look at red x in margin 
+- click next to a brackt to higlet everything in it 
+- the error: `Error in tag("div", list(...)): argument is missing no defualt` or silmals means extar comma somewhere 
