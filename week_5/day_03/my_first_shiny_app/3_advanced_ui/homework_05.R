@@ -79,7 +79,7 @@ server <- function(input, output) {
       scale_fill_gradient(low = "gray75", high = "gray25") +
       labs(x = "Beer Name",
            y = "Calories") +
-      theme(text = element_text(size = 18,
+      theme(text = element_text(size = 20,
                                 family = "Nunito Sans")) +
       theme_classic()
   )
@@ -98,7 +98,7 @@ server <- function(input, output) {
       scale_fill_gradient(low = "gray75", high = "gray25") +
       labs(x = "Beer Name",
            y = "Carbohydrates") +
-      theme(text = element_text(size = 18,
+      theme(text = element_text(size = 20,
                                 family = "Nunito Sans")) +
       theme_classic()
   )
