@@ -1,0 +1,343 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+games_sales <- CodeClanData::game_sales
+library(shiny)
+library(tidyverse)
+library(bslib)
+library(CodeClanData)
+
+
+```
+
+Decided to make my app look at comapring the top 3 developers
+
+```{r}
+
+games_sales %>% 
+  select(sales, developer) %>% 
+  group_by(developer) %>% 
+  summarise(sales_count = sum(sales)) %>% 
+  arrange(desc(sales_count)) %>% 
+  head(3)
+
+```
+
+
+```{r}
+
+games_sales_top <- games_sales %>% 
+  filter(developer == "EA" |
+           developer ==  "Nintendo" |
+           developer == "Ubisoft")
+
+```
+
+
+```{r}
+
+games_sales_top %>% 
+  ggplot()+
+  
+  
+  
+  
+  ```
+
+
+
+```{r}
+
+games_sales_ea <- games_sales_top %>% 
+  filter(developer == "EA")
+games_sales_nin <- games_sales_top %>% 
+  filter(developer == "Nintendo")
+games_sales_ubi <- games_sales_top %>% 
+  filter(developer == "Ubisoft")
+
+
+
+```
+
+```{r}
+games_sales_ea %>% 
+  select(year_of_release, sales, critic_score) %>% 
+  group_by(year_of_release) %>% 
+  summarise(sales_cout_by = sum(sales)) %>% 
+  ggplot()+
+  aes(x = year_of_release, y = sales_cout_by) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Total Sales By Year",
+    y = "Sales by millions",
+    x = "Release Year"
+  )
+
+
+```
+
+```{r}
+
+bottom_critic_ea <- games_sales_ea %>% 
+  arrange(critic_score) %>%
+  head(10) %>% 
+  ggplot()+
+  aes(x =  reorder(name, critic_score), y = critic_score, fill = sales) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(
+    x = "Name",
+    y = "Critic Score"
+    
+  )
+
+bottom_user_ea <-games_sales_ea %>% 
+  arrange(user_score) %>%
+  head(10) %>% 
+  ggplot()+
+  aes(x =  reorder(name, user_score), y = user_score, fill = sales) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(
+    x = "Name",
+    y = "User Score"
+    
+  )
+
+
+
+```
+
+```{r}
+top_critic_ea <- games_sales_ea %>% 
+  arrange(desc(critic_score)) %>%
+  head(10) %>% 
+  ggplot()+
+  aes(x =  reorder(name, critic_score), y = critic_score, fill = user_score) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(
+    x = "Name",
+    y = "Critic Score"
+    
+  )
+
+
+
+
+top_user_ea <- games_sales_ea %>% 
+  arrange(desc(user_score)) %>%
+  head(10) %>% 
+  ggplot()+
+  aes(x =  reorder(name, user_score), y = user_score, fill = sales) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(
+    x = "Name",
+    y = "User Score"
+    
+  )
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+games_sales_ea %>% 
+  ggplot() +
+  aes(x = genre) +
+  geom_bar()
+
+games_sales_ea %>% 
+  select(genre, sales) %>% 
+  group_by(genre) %>% 
+  summarise(sales_by_g = sum(sales)) %>% 
+  ggplot()+
+  aes(x = genre, y = sales_by_g) +
+  geom_col()
+
+
+```
+
+```{r}
+
+ggplot(games_sales_ea) +
+  aes(x = year_of_release, y = sales) +
+  geom_point(show.legend = FALSE) +
+  geom_smooth(method = "lm") +
+  facet_grid(~ genre)
+
+
+
+```
+
+```{r}
+
+
+
+output$bottom_critic_ea <- renderPlot({ 
+  games_sales_ea %>%
+    arrange(critic_score) %>%
+    head(5) %>%
+    ggplot() +
+    aes(x =  reorder(name, critic_score),
+        y = critic_score,
+        fill = sales) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(limits = c(0, 100)) +
+    labs(x = "Name",
+         y = "Critic Score")
+  
+})
+
+output$bottom_user_ea <- renderPlot({
+  games_sales_ea %>%
+    arrange(user_score) %>%
+    head(5) %>%
+    ggplot() +
+    aes(x =  reorder(name, user_score),
+        y = user_score,
+        fill = sales) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(limits = c(0, 10)) +
+    labs(x = "Name",
+         y = "User Score")
+  
+})
+```
+
+```{r}
+
+
+output$top_user_ea <- renderPlot({
+  games_sales_ea %>%
+    arrange(desc(user_score)) %>%
+    head(5) %>%
+    ggplot() +
+    aes(x =  reorder(name, user_score),
+        y = user_score,
+        fill = sales) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(limits = c(0, 10)) +
+    labs(x = "Name",
+         y = "User Score")
+  
+})
+```
+
+```{r}
+
+```
+
+```{r}
+
+both_sales <- games_sales %>% 
+  filter(developer == "Nintendo" | developer == "EA") %>% 
+  filter(publisher == "Nintendo"| developer == "Electronic Arts") %>%
+  distinct(name, .keep_all = TRUE)
+
+
+
+```
+
+```{r}
+
+both_sales %>%
+  select(year_of_release, sales, critic_score, developer) %>% 
+  #filter(developer == "EA") %>% 
+  group_by(year_of_release, developer) %>% 
+  summarise(sales_cout_by = sum(sales)) %>% 
+  ggplot() +
+  aes(x = year_of_release, y = sales_cout_by) +
+  geom_line() +
+  facet_wrap(~ developer)
+
+```
+```{r}
+
+en_nin_sales 
+
+
+```
+
+```{r}
+
+both_sales %>%
+  select(year_of_release, sales, critic_score) %>%
+  filter(developer == input$developer) %>% 
+  group_by(year_of_release) %>%
+  summarise(sales_cout_by = sum(sales)) %>%
+  ggplot() +
+  aes(x = year_of_release, y = sales_cout_by) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Total Sales By Year",
+       y = "Sales by millions",
+       x = "Release Year") +
+  scale_x_continuous(limits = c(1999, 2016)) +
+  scale_y_continuous(limits = c(0, 150)) +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 16)) +
+  theme(plot.title = element_text(size = 22)) +
+  theme(axis.title = element_text(size = 20,face ="bold"))
+
+
+
+```
+
+```{r}
+
+both_sales %>%
+  arrange(desc(sales)) %>% 
+  filter(developer == "EA") %>% 
+  head(20) %>%
+  ggplot() +
+  aes(x =  reorder(name, sales),
+      y = sales,
+      fill = developer) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(x = "Game Name",
+       y = "Sales by million",
+       title = "Top 20 Best Selling Games by sales") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 10)) +
+  theme(plot.title = element_text(size = 24)) +
+  theme(axis.title = element_text(size = 20, face = "bold")) +
+  scale_fill_manual(values = c("#ffa2a2", "#e70009"
+                    ))
+  
+
+
+
+
+```
+
+```{r}
+
+both_sales %>% 
+  filter(developer == "Nintendo") %>% 
+  summarise(sales = sum(sales))
+
+```
+
