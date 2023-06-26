@@ -256,7 +256,7 @@ server <- function(input, output) {
       geom_col() +
       coord_flip() +
       scale_fill_gradient(low = "#e70009",
-                          high = "#820303",
+                          high = "darkred",
                           space = "Lab") +
       scale_y_continuous(limits = c(0, 200)) +
       labs(x = "Game Name",
