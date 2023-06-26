@@ -340,13 +340,13 @@ server <- function(input, output) {
   
   output$eaTotalbox <- renderValueBox({
     valueBox(
-       "EA Total Sales:", paste0(359.32, "$"), color = "fuchsia"
+       "EA Total Sales:", paste0(359.32, "$"), color = "red"
     )
   })
     
     output$ninTotalbox <- renderValueBox({
       valueBox(
-        "Nintendo Total Sales:", paste0(528.31, "$"), color = "fuchsia"
+        "Nintendo Total Sales:", paste0(528.31, "$"), color = "red"
       )  
     
   })
