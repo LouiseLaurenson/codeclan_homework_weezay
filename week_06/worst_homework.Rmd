@@ -70,7 +70,7 @@ p(A | B) = p(A and B)/ p(B)
 
 0.09560489 / 0.40326235
 
-Answer: 0.2370786
+`Answer: 0.2370786`
 
 Survied / passenger 
 
@@ -86,7 +86,7 @@ p(A | B) = p(A and B)/ p(B)
 
 0.2265519 / 0.5967377
 
-Answer:  0.3796507
+`Answer:  0.3796507`
 
 Question 1.
 If I roll a six-sided dice once, what is the probability of getting a number less than 5?
@@ -109,7 +109,7 @@ how many outcomes are in the event where the total of the four dice equals 5
 , 6
  or 7
 )?
-what is the probability of this event?  `p = 9/1296, = 1/144 = 0.0069444`
+what is the probability of this event?  `p = 34/1296, 0.02623457`
 what assumptions do we apply in answering part ii?
 Hint
 For part i, rowSums(.) may help you setup up the necessary random variable total (or you can use pivot_longer())
@@ -117,14 +117,17 @@ For part i, rowSums(.) may help you setup up the necessary random variable total
 total outcomes = 6^4 = 1296
 
 ```{r}
-four_dice <- rolldie(4,6)
+four_dice <- rolldie(4)
 
 four_dice %>% 
   mutate(total = X1 + X2 + X3 + X4) %>% 
-  filter(total == c(5,6,7))
+  filter(total %in% c(5,6,7))
 
 
 ```
+34/1296
+= 0.02623457
+
 
 Question 4.
 Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
@@ -132,7 +135,7 @@ Five chairs are placed in a row in a room, along with five people of differing h
 Hint
 
 
-5! = 120 = possiablitys with 1 chance it being in order
+5! = 120 = possibility with 1 chance it being in order
 
 
 120 / 1

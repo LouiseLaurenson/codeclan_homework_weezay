@@ -1,0 +1,140 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Question 1.
+Load the data, clean_names() and explore it.
+
+```{r}
+library(tidyverse)
+
+clean_names <- read.csv("20190928-items.csv")
+
+clean_names %>% 
+  skimr::skim()
+
+```
+
+```{r}
+clean_names %>% 
+  ggplot(aes(x = rating)) +
+  geom_histogram()
+```
+`data is negative scweked `
+`unimodel`
+
+
+
+
+Question 2.
+Find the brand with the highest numbers of phones in the dataset.
+
+```{r}
+clean_names %>% 
+  group_by(brand) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  head(1)
+  
+```
+
+
+
+Question 3.
+For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. Do you think the normal distribution provides a good model of these ratings?
+Hint
+
+```{r}
+
+
+  
+samsung %>% 
+  skimr::skim(rating)
+
+samsung_stats <- samsung %>% 
+  summarise(
+    num = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+  )
+
+samsung <- clean_names %>% 
+  filter(brand == "Samsung") %>% 
+  ggplot(aes(x = rating)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 col = "white",
+                 bins = 20) +
+  stat_function(
+    fun = dnorm,
+    args = list(mean = samsung_stats$mean,
+                sd = samsung_stats$sd),
+    col = "green"
+  )
+  
+
+
+```
+mean = 3.5733
+sd = 0.6
+
+`not the best lots of stuff left out!`
+`stops before end of rating`
+
+Question 4.
+We can be more quantitative in comparing the distribution of top brand ratings with a normal distribution. You calculated the mean() and sd() of your distribution in an earlier question. Use these values to calculate the proportions of ratings within one-, two- and three standard deviations of the mean. Compare these proportions with those you expect for a normal distribution.
+
+This is what we expect =
+```{r}
+pnorm(1) - pnorm(-1)
+pnorm(2) - pnorm(-2)
+pnorm(3) - pnorm(-3)
+
+```
+
+```{r}
+
+samsung %>% 
+ filter(rating >= samsung_stats$mean - samsung_stats$sd) %>% 
+ filter(rating <= samsung_stats$mean + samsung_stats$sd) %>% 
+ summarise(prop_within_1sd = n() / nrow(samsung))
+
+```
+so in 1 SD - we have more data than the three sigma rule of `0.6826895` = 0.7934509	
+
+
+whats in 2 and 3 ?
+
+```{r}
+
+samsung %>% 
+ filter(rating >= samsung_stats$mean - samsung_stats$sd) %>% 
+ filter(rating <= samsung_stats$mean + samsung_stats$sd) %>% 
+ summarise(prop_within_1sd = n() / nrow(samsung))
+
+
+```
+
+
+
+
+just me looking at stuff
+
+```{r}
+standard_scaled <- samsung %>% select(-url, -title, -image,) %>% 
+  mutate(z_rating = (rating - mean(rating))/sd(rating),
+         z_rating_scale = scale(rating))
+
+standard_scaled %>% 
+  filter(!between(z_rating, left = -3, right = 3))
+#these are outliers!
+```
+
+```{r}
+
+standard_scaled %>% 
+  ggplot(aes(x = z_rating)) +
+  geom_histogram()
+
+```
+
