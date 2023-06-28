@@ -47,7 +47,8 @@ Hint
 
 ```{r}
 
-
+samsung <- clean_names %>% 
+  filter(brand == "Samsung")
   
 samsung %>% 
   skimr::skim(rating)
@@ -59,12 +60,12 @@ samsung_stats <- samsung %>%
     sd = sd(rating)
   )
 
-samsung <- clean_names %>% 
+samsung_tab <- clean_names %>% 
   filter(brand == "Samsung") %>% 
   ggplot(aes(x = rating)) +
   geom_histogram(aes(y = after_stat(density)),
                  col = "white",
-                 bins = 20) +
+                 bins = 30) +
   stat_function(
     fun = dnorm,
     args = list(mean = samsung_stats$mean,
@@ -108,13 +109,22 @@ whats in 2 and 3 ?
 ```{r}
 
 samsung %>% 
- filter(rating >= samsung_stats$mean - samsung_stats$sd) %>% 
- filter(rating <= samsung_stats$mean + samsung_stats$sd) %>% 
+ filter(rating >= samsung_stats$mean - 2 * samsung_stats$sd) %>% 
+ filter(rating <= samsung_stats$mean + 2 * samsung_stats$sd) %>% 
  summarise(prop_within_1sd = n() / nrow(samsung))
 
 
 ```
 
+```{r}
+
+samsung %>% 
+ filter(rating >= samsung_stats$mean - 3 * samsung_stats$sd) %>% 
+ filter(rating <= samsung_stats$mean + 3 * samsung_stats$sd) %>% 
+ summarise(prop_within_1sd = n() / nrow(samsung))
+
+
+```
 
 
 
@@ -127,7 +137,7 @@ standard_scaled <- samsung %>% select(-url, -title, -image,) %>%
 
 standard_scaled %>% 
   filter(!between(z_rating, left = -3, right = 3))
-#these are outliers!
+#these are outliers
 ```
 
 ```{r}

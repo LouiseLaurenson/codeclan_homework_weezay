@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1 MVP
+Now we’ll go back to CI creation in the normal fashion. We’ll take the ames data from the CIs lab earlier today and regard it now as a sample, we won’t be drawing any smaller samples from within it. This is the usual situation in an analysis: you use all the data available to you!
+
+```{r}
+library(tidyverse)
+library(infer)
+library(janitor)
+```
+
+
+Task 1.
+Load the data again, clean_names(), and re-familiarise yourself with it
+
+```{r}
+ames <- read_csv("data/ames.csv") %>% clean_names()
+```
+
+
+Task 2.
+Investigate the distribution of lot_area. Is the distribution roughly normal? If not, what problems do you find?
+
+
+```{r}
+
+ames %>% 
+  ggplot(aes(x = lot_area)) +
+  geom_boxplot()
+  
+
+```
+
+very skewed, lots of outlieres
+
+Task 3.
+Compute and visualise a bootstrap sampling distribution for the mean(lot_area) of the sold houses.
+
+```{r}
+
+infer_ames <- ames %>% 
+  specify(response = lot_area) %>% 
+  generate(reps = 5000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+  
+
+```
+
+
+Task 4.
+Use your bootstrap distribution to calculate a 95%
+ CI for mean(lot_area), and visualise it on the distribution
+
+```{r}
+
+infer_ci <- infer_ames %>% 
+  get_ci(level = 0.95, type = "percentile")
+
+infer_ames %>% 
+  visualise(bins = 30) +
+  shade_ci(endpoints = infer_ci)
+
+```
+
+
+Task 5.
+You would like to know the mean(lot_area) of the sold houses with higher confidence. Calculate the 99%
+ CI for this variable (you can re-use your bootstrap distribution from above). Is it narrower or broader than the 95%
+ CI? Does that make sense?
+
+```{r}
+infer_ci_99 <- infer_ames %>% 
+  get_ci(level = 0.99, type = "percentile")
+
+infer_ames %>% 
+  visualise(bins = 30) +
+  shade_ci(endpoints = infer_ci_99)
+
+
+```
+the 99% is broder = as the CI for 95% is [99,105] when 99% [98,106]
+99% is cap more data 
+
+Task 6.
+Calculate the point estimate of the mean(lot_area)
+
+
+```{r}
+
+infer_ames %>% 
+  summarise(mean = mean(stat))
+
+```
+mean = 10150.58
+
+2 Extension
+
+
+Task 1.
+Calculate a point estimate and 95%
+ CI for the proportion of houses in the data built before 1920. Does the number of reps you use matter? [Investigate reps from 200
+ up to 50000
+, memory of your laptop permitting].
+
+```{r}
+
+
+ames <- ames %>% 
+  mutate(before_1920 = str_detect(year_built, pattern = "\\b(0|1[0-9]{0,2}|19[0-1][0-9]|192[0-0])\\b")) %>% 
+  relocate(before_1920, .before = year_built)
+
+```
+
+
+
+
+```{r}
+infer_ames_1920 <-
+ 
+  ames%>% 
+  specify(response = year_built, success = TRUE) %>% 
+  generate(reps = 5000, type = "bootstrap") %>% 
+  calculate(stat = "prop")
+  
+
+```
+
