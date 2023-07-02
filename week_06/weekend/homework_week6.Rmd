@@ -1,0 +1,218 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+data(msleep)
+library(infer)
+library(janitor)
+
+
+```
+
+```{r}
+glimpse(msleep)
+```
+Question 2.
+Jabberwockies sleep for around 7 hours a night, on average. Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+H0: mean sleep_total is equal to typical 7 hour mean of jabberwockies
+H1: the mean is diifent 
+
+```{r}
+
+null_distribution <- msleep %>% 
+  specify(response = sleep_total) %>% 
+  hypothesise(null = "point", mu = 7) %>%  #our vaule for jabberwockies
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+
+
+```
+
+```{r}
+
+null_distribution %>% 
+  visualise() +
+  shade_p_value(obs_stat = obs_stat, direction = "both")
+
+
+```
+```{r}
+obs_stat <- mean(msleep$sleep_total)
+
+
+```
+
+```{r}
+
+null_distribution %>% 
+  get_p_value(obs_stat = obs_stat, direction = "both")
+```
+
+so with alpha set at 0.05
+
+we are over this±! so we can dispove our H0,
+so there is a diifences in sleep totoal 
+
+
+Question 3.
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, 
+on average.
+
+H0: Omnivores = herbivores
+H1:Omnivores sleep significantly > herbivores.
+
+omni: 10.925000
+herbi: 9.509375
+
+```{r}
+msleep %>% 
+  summarise(mean_sleep = mean(sleep_total), .by  = "vore")
+```
+
+```{r}
+msleep_omi <-
+msleep %>% 
+  filter(vore == "omni")
+```
+
+
+```{r}
+
+null_distribution <- msleep_omi %>% 
+  specify(response = sleep_total) %>% 
+  hypothesise(null = "point", mu = 9.509375) %>%  #our vaule for herbi
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+```
+
+```{r}
+
+null_distribution %>% 
+  visualise() +
+  shade_p_value(obs_stat = obs_stat, direction = "both")
+
+
+```
+
+```{r}
+obs_stat <- mean(msleep_omi$sleep_total)
+
+
+```
+
+```{r}
+
+null_distribution %>% 
+  get_p_value(obs_stat = obs_stat, direction = "both")
+```
+p vaule is greater than alpha of 0.05 
+so no signifiactnce 
+
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%
+.
+Hint
+Think about creating an is_domesticated variable for the analysis
+
+
+```{r}
+dom_msleep <- 
+msleep %>% 
+  select(conservation) %>% 
+  mutate(is_domesticated = conservation == "domesticated")
+dom_msleep <-
+dom_msleep %>% 
+  na.omit()
+  
+```
+
+```{r}
+null_distribution <-
+dom_msleep %>% 
+  specify(response = is_domesticated, success = "TRUE") %>% 
+  hypothesise(null = "point", p = 0.05) %>% 
+  generate(reps = 5000, type = "draw") %>% 
+  calculate(stat = "prop")
+
+```
+
+```{r}
+obser_stat <- mean(dom_msleep$is_domesticated == "TRUE")
+```
+
+```{r}
+
+null_distribution %>% 
+  visualise() +
+  shade_p_value(obs_stat = obser_stat, direction = "right")
+
+```
+
+```{r}
+null_distribution %>% 
+  get_p_value(obs_stat = obser_stat, direction = "right")
+
+```
+hmm loook at this! 
+
+
+1.2
+
+
+q1:
+You work for a independent coffee shop. The boss tells you that she thinks that around 40%
+ of people in the town (population 30,000
+) know of the coffee shop, but you are skeptical of the estimate and think that the actual percentage is higher. You conduct a random survey of 200
+ people in the town, asking if respondents are aware of your coffee shop. You want to use the sample to test the hypothesis that more than 40%
+ of the town’s population have heard of the coffee shop.
+
+
+test-type:
+H0: The pro of people in town who knwo of the coffee shop is equal to or less than 40%
+Ha: The pro of people in town who knwo of the coffee shop is greater 40%
+draw 
+
+
+Q2:
+
+
+H0: The CTR for group A is = to the group B
+HA: The CTR for group B is higher than A
+permutation
+
+Q3:
+
+H0: The mean width of parts is equal to 145
+HA: The mean width of parts is not equal to 145
+bootstarp
+
+
+Question 1.
+
+Coffee shop problem. Significance level: 0.05, calculated p
+-value: 0.07
+` p vaule is greater than sig level. so we cant reject the H0. 
+
+
+Question 2.
+
+Website company problem. Significance level: 0.01, p
+-value: 0.006
+
+` p vaule is less than sig level. so we have strong evidince to reject the null hyop. The layout change has a had a signficant impact.
+
+
+Question 3.
+
+Manufacturing company problem. Significance level: 0.05, p
+-value: 0.55
+`As the vaule is 0.55, it is reasonable to say are not statistically meaningful or significant. It would be inappropriate to make any definitive conclusions or decisions based solely on the results of this analysis.
+
+
+
+
