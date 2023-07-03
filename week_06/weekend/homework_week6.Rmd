@@ -158,8 +158,11 @@ null_distribution %>%
   get_p_value(obs_stat = obser_stat, direction = "right")
 
 ```
-hmm loook at this! 
-
+The p
+-value is less than α
+, so we reject H0
+ and accept that the proportion of domesticated animal types in the data is significantly greater than 5%
+.
 
 1.2
 
@@ -185,7 +188,13 @@ H0: The CTR for group A is = to the group B
 HA: The CTR for group B is higher than A
 permutation
 
+H0 : πCTR(top)−πCTR(right)=0
+
+Ha: πCTR(top)−πCTR(right)>0
+
 Q3:
+
+
 
 H0: The mean width of parts is equal to 145
 HA: The mean width of parts is not equal to 145
