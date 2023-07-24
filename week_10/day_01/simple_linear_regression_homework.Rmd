@@ -82,6 +82,14 @@ summary(project_model)
 
 * Interpret the regression coefficient of `estimated_length` (i.e. slope, gradient) you obtain from the model. How do you interpret the $r^2$ value reported by the model?
 
+```{r}
+
+project_management %>% 
+  summarise(cor = cor(estimated_length, actual_length))
+
+glance(project_model)
+
+```
 
 
 
