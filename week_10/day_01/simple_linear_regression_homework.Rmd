@@ -90,8 +90,14 @@ project_management %>%
 glance(project_model)
 
 ```
+so a 1
+ day increase in estimated_length is associated with a 1.2235
+ day increase in actual_length, i.e. the company is underestimating job lengths.
 
 
+The  r2
+  value tells us that approximately 65%
+ of the variation in actual_length can be predicted from the variation in estimated_length.
 
 <br>
 
@@ -105,10 +111,43 @@ glance(project_model)
 library(performance)
 library(see)
 
+library(ggfortify)
+autoplot(project_model)
+
+
 check_model(project_model)
 
 ```
 
+first plot - straight line, if not there is a systamic pattaren somewhere 
+
+1. that the relationship is actually linear (same amount of error above and below the line) if its curved 
+
+second plot 
+
+- are the error normal distributed (on the lines yes)
+
+2. erros (residuals) should be normally distributed 
+
+third 
+
+- Homosscedastic errors 
+- constant variance
+
+four 
+
+leverage - how much affect is the outliers having on the model 
+x is measured without error 
+
+
+
+```{r}
+
+par(mfrow = c(2,3))
+plot(project_model)
+hist(project_model$residuals)
+
+```
 
 
 <hr>
