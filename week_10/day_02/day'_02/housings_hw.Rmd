@@ -92,7 +92,7 @@ housing_prices_filter %>%
 ```{r}
 
 housing_prices_filter %>% 
-  ggplot(aes(x = median_house_value, y = median_income)) +
+  ggplot(aes(y = median_house_value, x = median_income)) +
   geom_point() +
   geom_smooth(method = "lm", se = F) 
 
@@ -148,6 +148,29 @@ autoplot(model2)
 -  Residuals vs. Fitted Values: has straight line so indicating constant variance 
 -  QQ plot shows roughly a straight residuals are normally distributed
 -  for the vaule of a house the the income goes up 42420
+
+
+changing the ref dummy 
+
+```{r}
+
+
+
+
+grades2 <- grades %>% 
+  mutate(subject2 = as.factor(subject), .after = subject,
+         subject3 = relevel(subject2, 'english'))
+
+lm4 <- lm(final ~ assignment + subject2, grades2)
+lm5 <- lm(final ~ assignment + subject3, grades2)
+summary(lm4)
+summary(lm5)
+
+
+dummy_cols(grades, remove_first_dummy = FALSE) #but nit nice
+
+
+```
 
 # Extension
     
