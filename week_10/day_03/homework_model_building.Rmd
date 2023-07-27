@@ -9,6 +9,14 @@ output:
     css: ../../../styles.css
   pdf_document: default
 ---
+```{r}
+
+library(tidyverse)
+library(modelr)
+library(GGally)
+library(ggfortify)
+
+```
 
 
 # MVP
@@ -56,9 +64,42 @@ Tidy up the data ready for regression:
     * Have a think about how to treat `view`, `condition` and `grade`? Are they interval or categorical ordinal data types?
 
 
+```{r}
+housing_sales <- read_csv("data/kc_house_data.csv")
+
+```
+
+```{r}
+housing_sales_clean <- housing_sales %>% 
+  select(-c(date, id, sqft_living, sqft_living15, sqft_lot15, zipcode)) 
+```
+
+```{r}
+housing_sales_clean <- housing_sales_clean %>% 
+  mutate(waterfront = as_factor(waterfront))
+```
+
+```{r}
+housing_sales_clean <- housing_sales_clean %>% 
+  mutate(yr_renovated = as.logical(yr_renovated)) %>% 
+  mutate(view = as_factor(view)) %>% 
+  mutate(condition = as_factor(condition)) %>%
+  mutate(grade = as_factor(grade))
+```
+
+Have a think about how to treat `view`, `condition` and `grade`? Are they interval or categorical ordinal data types?
+
+All categorical?
+
+
 # Question 2
 
 Check for aliased variables using the `alias()` function (this takes in a formula object and a data set). [**Hint** - formula `price ~ .` says 'price varying with all predictors', this is a suitable input to `alias()`]. Remove variables that lead to an alias. Check the 'Elements of multiple regression' lesson for a dropdown containing further information on finding aliased variables in a dataset.
+
+
+```{r}
+alias(lm(price ~ ., housing_sales_clean))
+```
 
 
 # Question 3
@@ -66,23 +107,67 @@ Check for aliased variables using the `alias()` function (this takes in a formul
 Systematically build a regression model containing up to **four** main effects (remember, a main effect is just a single predictor with coefficient), testing the regression diagnostics as you go
     * splitting datasets into numeric and non-numeric columns might help `ggpairs()` run in manageable time, although you will need to add either a `price` or `resid` column to the non-numeric dataframe in order to see its correlations with the non-numeric predictors.
 
+```{r}
+houses_tidy_nonnumeric$price <- housing_sales_clean$price
+
+```
+
 <details>
 <summary>**Hints**</summary>
 ```{r, eval=FALSE}
-houses_tidy_numeric <- houses_tidy %>%
+houses_tidy_numeric <- housing_sales_clean %>%
   select_if(is.numeric)
 
-houses_tidy_nonnumeric <- houses_tidy %>%
+houses_tidy_nonnumeric <- housing_sales_clean %>%
   select_if(function(x) !is.numeric(x))
 
-houses_tidy_nonnumeric$price <- houses_tidy$price
+houses_tidy_nonnumeric$price <- housing_sales_clean$price
 
-ggpairs(houses_tidy_numeric)
-ggpairs(houses_tidy_nonnumeric)
+ggpairs(houses_tidy_numeric, progress = F)
+ggpairs(houses_tidy_nonnumeric,  progress = F)
+
+
+
 ```
 and the same in subsequent rounds of predictor selection with the `resid` column.<br><br>
 Remember, if you are not sure whether including a categorical predictor is statistically justified, run an `anova()` test passing in the models with- and without the categorical predictor and check the p-value of the test.
 </details>
+
+```{r}
+
+modelh4 <- lm(price ~ sqft_lot, houses_tidy_numeric)
+modelh5 <- lm(price ~ floors, houses_tidy_numeric)
+modelh6 <- lm(price ~ yr_renovated, houses_tidy_nonnumeric)
+
+autoplot(modelh4)
+autoplot(modelh5)
+autoplot(modelh6)
+
+summary(modelh4)
+summary(modelh5)
+summary(modelh6)
+
+
+```
+```{r}
+modelh <- lm(price ~ bedrooms, houses_tidy_numeric)
+modelh2 <- lm(price ~ bathrooms, houses_tidy_numeric)
+modelh3 <- lm(price ~ waterfront, houses_tidy_nonnumeric)
+
+autoplot(modelh)
+autoplot(modelh2)
+autoplot(modelh3)
+```
+
+```{r}
+
+model7 <- lm(price ~ grade, houses_tidy_nonnumeric)
+
+summary(model7)
+
+```
+
+
 
 
 
@@ -91,4 +176,63 @@ Remember, if you are not sure whether including a categorical predictor is stati
 * Consider possible interactions between your four main effect predictors and test their effect upon $r^2$. Choose your best candidate interaction and visualise its effect. 
 
 * Calculate the relative importance of predictors from your best $4$-predictor model (i.e. the model without an interaction). Which predictor affects `price` most strongly?
+
+
+
+Whats is the data show me and what can i make a model of 
+
+**what does 1 row represent?**
+
+1 house 
+making a model for individual house prices
+
+**look at the data and variables**
+
+Which of these things will be usfal 
+feature engineering 
+- taking the raw materials and making them more useful 
+
+- might want to do a log transfer on data postive skew data (skimr)
+
+
+```{r}
+
+skimr::skim(housing_sales_clean)
+
+```
+
+```{r}
+
+housing_sales_clean %>% 
+  ggplot(aes(price)) +
+  geom_histogram() +
+  scale_x_continuous(trans = "log10")
+
+```
+
+This looks like a better model 
+
+```{r}
+house_log <-
+housing_sales_clean %>% 
+  mutate(ln_house_price = log(price))
+```
+is its not a linner realtion ship ( can you put a straight line thought and be correct) - for like grade no as grade 9 is not 3 times grade 3 so thats why you make it a factor 
+
+
+making ggpear better
+
+save it 
+but has to rigth after the plot has outputted 
+```{r}
+
+ggpairs(houses_tidy_numeric, progress = F)
+ggpairs(houses_tidy_nonnumeric,  progress = F)
+
+
+ggsave("ggpairs_num.png",
+       width = 15,
+       height = 15)
+
+```
 
