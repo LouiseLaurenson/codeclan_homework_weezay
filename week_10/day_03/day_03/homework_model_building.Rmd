@@ -262,3 +262,63 @@ ggsave("ggpairs_num.png",
 
 ```
 
+from the atuoplots 
+
+```{r}
+plot(model)
+```
+
+
+we want to be abround 0 as we dont want anything to see we are wrong 
+
+so what  - is the model ready - or is it the right type of model?
+
+first plot
+there is a patteren which we dont wont 
+
+second 
+- test of your residuals - there is a skew in our errors 
+- looking for norailty in our trsiduals 
+
+third 
+
+what a straight line 
+
+
+## adding reciduals back
+
+
+```{r}
+
+houses_model <- housing_sales_clean %>% 
+  mutate(resid = model7$residuals)
+
+```
+
+
+```{r}
+
+houses_model <- housing_sales_clean %>% 
+  add_residuals(mode17)
+
+```
+
+this is good as can see how wrong you are, 
+
+Also the part i havent explained yet 
+
+so model now has grade and sqft but what else could I add to make it better thats why you add the resid back  
+
+
+so what, what now?
+
+Understand the process better 
+
+It proves what you might think, 
+so yes you can see grade and sqft_above have a an affect on the price 
+
+- and in real world so if i want to see what i can charge for house with certain sqft 
+
+
+- can be used as a predicitive model 
+
