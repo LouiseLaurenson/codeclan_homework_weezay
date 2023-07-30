@@ -1,0 +1,66 @@
+---
+title: "Quiz"
+output: html_notebook
+---
+
+**Q1:**
+I want to predict how well 6 year-olds are going to do in their final school exams. Using the following variables am I likely under-fitting, fitting well or over-fitting? Postcode, gender, reading level, score in maths test, date of birth, family income.
+
+**A:1**
+over-fitting: postcode and family income (also data of birth if its all six year olds - what use is the month)
+
+
+
+**Q2:**
+If I have two models, one with an AIC score of 34,902 and the other with an AIC score of 33,559 which model should I use?
+
+**A2:**
+AIC - looking for low score so model with 33559
+
+
+
+
+**Q3:**
+I have two models, the first with: r-squared: 0.44, adjusted r-squared: 0.43. The second with: r-squared: 0.47, adjusted r-squared: 0.41. Which one should I use?
+
+**A3:** 
+The first one 
+
+
+
+**Q4:**
+I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
+
+**A4:** 
+No, as results are very very close, so the model is prefoming similay on both data sets.
+
+
+**Q5:**
+How does k-fold validation work?
+
+**A5:** 
+It works by dividing a data set into a number you choose (normally 10) called folds. Then the model is then trained and tested on the data by the number you chosen less 1, so each fold has the chance to be the test data and the rest will be training data.
+
+The when this is done you can average the error across all the folds which will give us a very accurate mesure of the model.
+
+**Q6:**
+What is a validation set? When do you need one?
+
+**A6:**
+
+So as well as making test and training data sets, a validation set is not used in the comparing of the models, its used after you have choose the model and used to show final estimate of the performance of your model.
+
+**Q7:**
+Describe how backwards selection works.
+
+**A7:**
+
+This starts with model containing all possible predictors, at each step checks all predictors in the model and finds the one that lowers r^2 the least when its removed. Then removes that predictor from the model then keeps going down the steps
+
+
+**Q8**
+Describe how best subset selection works.
+
+**A7**
+
+At each size of model it searches all possible combinations of predictors for the best model.

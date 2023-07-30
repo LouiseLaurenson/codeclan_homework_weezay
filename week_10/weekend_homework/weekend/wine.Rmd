@@ -1,0 +1,146 @@
+---
+title: "Wine"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(leaps)
+library(GGally)
+
+```
+
+read data in
+```{r}
+red <- read_csv("data/wine_quality_red.csv")
+white <- read_csv("data/wine_quality_white.csv")
+
+```
+
+add colum for red and white to the bind data 
+
+```{r}
+test <- bind_rows(.id = "wine_id", white, red)
+
+```
+
+each row is a different wine 
+
+
+
+```{r}
+test %>% 
+  group_by(wine_id) %>% 
+  summarise(count = n())
+```
+
+1 is white 
+2 is red 
+
+```{r}
+test_wine <-
+test %>% 
+  mutate(wine_id = if_else(wine_id == 1, TRUE, FALSE)) %>% 
+  rename("white_wine" = "wine_id") %>% 
+  select(-region)
+
+```
+
+```{r}
+test_wine %>% 
+  summarise(across(.fns = ~ sum(is.na(.x))))
+```
+
+
+```{r}
+skimr::skim(test_wine) %>% view()
+```
+
+
+```{r}
+regwine_best <- regsubsets(quality ~ .,
+                           test_wine,
+                           nvmax = 15,
+                           method = "exhaustive")
+
+summary(regwine_best)
+```
+
+```{r}
+plot(regwine_best, scale = "adjr2")
+plot(regwine_best, scale = "bic")
+plot(summary(regwine_best)$bic, scale = "b")
+```
+
+from this would use 5
+
+```{r}
+
+modelnew <- lm(quality ~ white_wine + volatile_acidity + residual_sugar + sulphates + alcohol, test_wine)
+
+```
+
+```{r}
+plot(modelnew)
+```
+
+
+
+
+
+
+**********************************************
+
+non auto 
+
+
+```{r}
+
+ggpairs(test_wine)
+
+
+```
+
+```{r}
+
+ggsave("ggpairs.png",
+       width = 20,
+       height = 20)
+
+```
+
+
+
+```{r}
+regwine_best <- regsubsets(quality ~ .,
+                           test_wine,
+                           nvmax = 15,
+                           method = "forward")
+
+summary(regwine_best)
+```
+
+
+
+```{r}
+regwine_best <- regsubsets(quality ~ .,
+                           test_wine,
+                           nvmax = 15,
+                           method = "backward")
+
+summary(regwine_best)
+```
+
+
+```{r}
+plot(regwine_best, scale = "adjr2")
+plot(regwine_best, scale = "bic")
+plot(summary(regwine_best)$bic, scale = "b")
+```
+
+```{r}
+plot(regwine_best, scale = "adjr2")
+plot(regwine_best, scale = "bic")
+plot(summary(regwine_best)$bic, scale = "b")
+```
+
