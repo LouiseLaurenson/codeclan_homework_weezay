@@ -144,3 +144,133 @@ plot(regwine_best, scale = "bic")
 plot(summary(regwine_best)$bic, scale = "b")
 ```
 
+**********************************
+
+In class 
+
+```{r}
+red <- read_csv("data/wine_quality_red.csv")
+white_wine <- read_csv("data/wine_quality_white.csv")
+
+```
+
+#what fopdness of fit measure?   adj-r2, AIC, BIC
+#test train split, yes: 90/10
+# k fold ? yes - to prevent over-fitting
+# model? or model? red/white - separalty 
+
+#white wine 
+
+
+test train split 
+```{r}
+n_data_white <- nrow(white_wine)
+
+test_index_white <-  sample(1:n_data_white, size = n_data_white*0.1)
+
+test_white <- slice(white_wine, test_index_white)
+train_white <- slice(white_wine, -test_index_white)
+
+
+
+```
+# exploer the data 
+# what does 1 row look like 
+
+1 wine with techinical measuremnts and summariesd avg ratitng 
+
+
+```{r}
+skimr::skim(test_white)
+```
+
+```{r message=FALSE}
+
+train_white %>% 
+  select(quality, -wine_id, 2:7) %>% 
+  ggpairs()
+
+```
+```{r message=FALSE}
+
+train_white %>% 
+  select(quality, -wine_id, 8:14) %>% 
+  ggpairs()
+
+```
+What transofations 
+
+```{r}
+
+train_white_fe <- train_white %>% 
+  mutate(across(where(is.numeric), .fns = ~ log(1 + .x),
+                .names = "log_{.col}")) %>% 
+  mutate(chlorides_diff_to_mean = chlorides - mean(chlorides), .after = chlorides) %>% 
+  mutate(chlorides_abs_to_mean = abs(chlorides_diff_to_mean), .after = chlorides_diff_to_mean) #makes negative positve 
+
+```
+
+
+```{r}
+alias(quality ~ ., train_white)
+```
+
+
+
+```{r}
+ggplot(train_white_fe) +
+  aes(x = chlorides_abs_to_mean, y = quality ) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+```{r}
+
+train_white_fe %>% 
+  select(quality, starts_with("log")) %>% 
+  select(1:8) %>% 
+  select(starts_with("log"), quality) %>% 
+  ggpairs()
+
+```
+
+```{r}
+
+mod1 <- lm(quality ~ alcohol, data = train_white_fe)
+
+
+```
+
+
+```{r}
+
+summary(mod1
+)
+
+```
+
+```{r}
+
+library(modelr)
+
+train_white_fe %>% 
+  add_predictions(mod1) %>% 
+  add_residuals(mod1) %>% 
+  select(1:6, resid) %>% 
+  ggpairs()
+
+```
+
+
+```{r}
+
+mod2 <- lm(quality ~ alcohol + volatile_acidity, data = train_white_fe)
+
+summary(mod2)
+
+```
+
+```{r}
+summary(modelnew)
+```
+

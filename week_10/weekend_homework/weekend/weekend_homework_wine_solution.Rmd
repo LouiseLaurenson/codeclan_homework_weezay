@@ -1,0 +1,619 @@
+---
+title: "Weekend Homework Solution - Model Building"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center', warning = FALSE, message = FALSE)
+```
+
+# MVP
+
+We've looked at a few different ways in which we can build models this week, including how to prepare them properly. This weekend we'll build a multiple linear regression model on a dataset which will need some preparation. The data can be found in the data folder, along with a data dictionary
+
+We want to investigate the `wine_quality_red` and `wine_quality_white` datasets, and, in particular, to model the `quality` of the wines. Use regression to determine which physiochemical properties make a wine 'good'!
+
+Use the tools we've worked with this week in order to prepare your dataset and find appropriate predictors. Once you've built your model use the validation techniques discussed on Wednesday to evaluate it. Feel free to focus either on building an *explanatory* or a *predictive* model, or both if you are feeling energetic!
+
+
+
+Acknowledgements
+This dataset is from the UCI machine learning repository, https://archive.ics.uci.edu/ml/datasets/wine+quality.
+
+Ref: *P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. Modeling wine preferences by data mining from physicochemical properties. In Decision Support Systems, Elsevier, 47(4):547-553, 2009.*
+
+
+
+As part of the MVP we want you not to just run the code but also have a go at **interpreting the results** and write your thinking in comments in your script.
+
+**Hints and tips**
+
+* `region` may lead to many dummy variables. Think carefully about whether to include this variable or not (there is no one 'right' answer to this!)
+* Think about whether each variable is *categorical* or *numerical*. If categorical, make sure that the variable is represented as a factor.
+* If you want to build a predictive model, consider using either `leaps` or `glmulti` to help with this.
+
+
+
+# Manual Approach : Explanatory Model
+
+Be aware that the following isn't the one, correct answer to this task. It's just a particularly in-depth run-through of building a possible model for this data.
+
+
+## Data & Data Cleaning 
+
+
+<br> 
+
+Load libraries:
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(GGally)
+library(modelr)
+library(janitor)
+```
+
+Load the red wine dataset and examine it:
+
+```{r}
+wine_red <- read_csv("data/wine_quality_red.csv")
+head(wine_red)
+```
+
+<br>
+
+Ok, we have `wine_id` column and then 13 variables, one of which is our outcome variable `quality`. 
+
+<br> 
+
+Load the white wine dataset and examine it:
+
+```{r}
+wine_white <- read_csv("data/wine_quality_white.csv")
+head(wine_white)
+```
+
+<br>
+
+The white wine dataset is the same format as the red, with the same variables. Let's make a column in each that specifies `wine_colour` so we can examine this as a predictor of quality later. We would be justified in examining the wine colour datasets separately so this is just a choice!
+
+```{r}
+wine_red <- wine_red %>% 
+  mutate(wine_colour = 'red', .before = fixed_acidity)
+
+wine_white <- wine_white %>% 
+  mutate(wine_colour = 'white', .before = fixed_acidity)
+  
+```
+
+
+<br>
+
+Let's combine them:
+
+```{r}
+# One way is to extract the final wine_id of wine_red
+last_red_row <- nrow(wine_red)
+
+# Then mutate the wine_id's of wine_white by adding this value to each
+wine_white <- wine_white %>% 
+  mutate(wine_id = wine_id + last_red_row)
+
+# Then bind so each wine has a unique id in the final dataframe
+wine_both <- bind_rows(wine_red, wine_white)
+#View(wine_both)
+
+# remove wine_id
+wine_both <- wine_both %>% 
+  select(-wine_id)
+```
+
+
+<br>
+
+Now let's check how many different levels of the categorical variable `region` we have.  
+
+<br> 
+
+```{r}
+wine_both %>%
+  distinct(region) %>%
+  summarise(number_of_regions = n())
+```
+
+Just the 5 regions: Australia, Spain, Italy, USA, France. Going to make sure `region` and `wine_colour` are represented as factors:
+
+```{r}
+wine_both <- wine_both %>% 
+  mutate(region = as.factor(region),
+         wine_colour = as.factor(wine_colour))
+
+class(wine_both$region)
+class(wine_both$wine_colour)
+```
+
+
+<br>
+
+The `region` variable will lead to a manageable number of categorical levels, so let's leave it in. 
+
+<br>
+
+Now we've done our cleaning, we can check for aliased variables (i.e. combinations of variables in which one or more of the variables can be calculated exactly from other variables):
+
+<br>
+
+```{r}
+alias(quality ~ ., data = wine_both)
+```
+
+Nice, we don't find any aliases. So we can keep going. However, variables like `fixed_acidity` and `volatile_acidity` sound like they may be correlated, same with `free_sulfur_dioxide` and `total_sulfur_dioxide` so we'll have to be keep an eye out with these.
+
+<br>
+
+
+## First variable
+
+We need to decide on which variable we want to put in our model first. To do this, we should visualise it. Because we have so much data, `ggpairs()` might take a while to run, so we can split it up a  bit. 
+
+<br> 
+
+```{r, message = FALSE}
+# let's start by plotting quality and the acidity variables 
+wine_both %>%
+  select(quality, fixed_acidity, volatile_acidity, citric_acid, p_h) %>%
+  ggpairs() + 
+   theme_grey(base_size = 8) # font size of labels
+```
+<br> 
+Hmm, none of these acidity variables look highly correlated with each other so no justification to remove them yet. The variable mostly highly correlated with `quality` is `volatile_acidity` at -0.25. 
+<br>
+
+```{r, message = FALSE}
+# now let's plot quality and the remaining variables 
+wine_both %>%
+  select(quality, residual_sugar, chlorides, free_sulfur_dioxide, total_sulfur_dioxide, sulphates, density, alcohol) %>%
+  ggpairs() +
+  theme_grey(base_size = 1) + # font size of labels 
+  theme(strip.text = element_text(size = 5)) # increase row and col label size
+```
+<br>
+
+So we can see that `alcohol` and `density` have a pretty strong positive correlation of almost 0.7 so will drop `density` from the model.
+
+Also, `total_sulfur_dioxide` is highly correlated with `free_sulfur_dioxide` so will drop the latter.
+
+
+```{r}
+wine_both <- wine_both %>%
+  select(-density, -free_sulfur_dioxide)
+```
+<br>
+
+In terms of variables that correlate well with `quality`... we've got `alcohol` at just over 0.4, then `chlorides` maybe at almost 0.2. Not amazing but that's life. 
+
+<br> 
+
+We can look at our categorical variables, `wine_colour` and `region` next: 
+
+<br> 
+```{r, message = FALSE}
+wine_both %>%
+  select(quality, wine_colour, region) %>%
+  ggpairs() + 
+   theme_grey(base_size = 8) # font size of labels
+```
+<br> 
+
+Almost no relationship between wine quality and colour/region according to these plots!
+
+<br>
+
+Let's start by testing competing models. We decided that `alcohol`, `chlorides`, and `volatile_acidity` seemed reasonable:
+
+<br>
+
+```{r, warning = FALSE, message = FALSE}
+library(ggfortify)
+
+# build the model 
+model1a <- lm(quality ~ alcohol, data = wine_both)
+
+# check the diagnostics
+autoplot(model1a)
+
+# check the summary output
+summary(model1a)
+```
+
+<br>
+
+Diagnostic plots look good!
+
+<br>
+
+```{r}
+# build the model 
+model1b <- lm(quality ~ chlorides, data = wine_both)
+
+# check the diagnostics
+autoplot(model1b)
+
+# check the summary output
+summary(model1b)
+```
+<br>
+
+Diagnostic plots look iffy...
+
+<br>
+
+```{r}
+# build the model 
+model1c <- lm(quality ~ total_sulfur_dioxide, data = wine_both)
+
+# check the diagnostics
+autoplot(model1c)
+
+# check the summary output
+summary(model1c)
+```
+
+<br>
+
+Not the worst diagnostic plots I've seen...
+
+<br>
+
+`model1a` with `alcohol` is best, so we'll keep that and re-run `ggpairs()` with the residuals.
+
+<br>
+
+## Second variable
+
+<br>
+
+```{r, warning = FALSE, message = FALSE}
+wine_remaining_resid <- wine_both %>%
+  add_residuals(model1a) %>%
+  select(-c("quality", "alcohol"))
+
+ggpairs(wine_remaining_resid) + 
+  theme_grey(base_size = 1) +# this bit just changes the axis label font size so we can see
+  theme(strip.text = element_text(size = 5)) # increase row and col label size
+```
+<br> 
+
+Again, this isn't showing any really high correlations between the residuals and any of our numeric variables. 
+Looks like `volatile_acidity` and  `residual_sugar` (not to be confused with our model residuals!) could show something potentially. 
+
+
+<br>
+
+```{r}
+model2a <- lm(quality ~ alcohol + chlorides, data = wine_both)
+autoplot(model2a)
+summary(model2a)
+```
+
+```{r}
+model2b <- lm(quality ~ alcohol + volatile_acidity, data = wine_both)
+autoplot(model2b)
+summary(model2b)
+```
+
+```{r}
+model2c <- lm(quality ~ alcohol + residual_sugar, data = wine_both)
+autoplot(model2c)
+summary(model2c)
+```
+
+
+<br>
+
+So `model2b` with `alcohol` and `volatile_acidity` comes out as better here. `chlorides` and `residual_sugar` do have coefficients with significant p-values (both at < 0.001) so will keep this in mind.
+
+<br>
+
+Let's perform an ANOVA to see if we're justified in making a more complex model (i.e. single predictor vs two predictors):
+```{r}
+# model1a is the model with quality ~ alcohol
+# model2b is the model with quality ~ alcohol + volatile_acidity
+
+# we want to compare the two
+anova(model1a, model2b)
+```
+
+<br>
+
+It seems we're justified in adding `volatile_acidity` creates a better model, so we'll keep it in!
+
+<br>
+
+
+## Third variable
+
+<br>
+
+`Model2b` is our model with `quality ~ alcohol + volatile_acidity`, and it explains `0.2387` of the variance in average price. This isn't very high, so we can think about adding a third predictor now. Again, we want to remove these variables from our data, and check the residuals.  
+
+<br> 
+
+```{r, message = FALSE}
+wine_remaining_resid <- wine_both %>%
+  add_residuals(model2b) %>%
+  select(-c("quality", "alcohol", "volatile_acidity"))
+
+ggpairs(wine_remaining_resid) + 
+   theme_grey(base_size = 1) + 
+   theme(strip.text = element_text(size = 5)) 
+```
+
+<br>
+
+Plenty of low but very significant correlations between variables and residuals.
+The next contender variables look to be `sulphates` and `residual_sugar`. Let's try them out.
+
+<br>
+
+```{r}
+model3a <- lm(quality ~ alcohol + volatile_acidity + sulphates, data = wine_both)
+autoplot(model3a)
+summary(model3a)
+```
+
+```{r}
+model3b <- lm(quality ~ alcohol + volatile_acidity + residual_sugar, data = wine_both)
+autoplot(model3b)
+summary(model3b)
+```
+
+So `model3a` with `alcohol`, `volatile_acidity` and `sulphates` wins out here.
+Everything still looks reasonable with the diagnostics.
+
+<br>
+
+```{r}
+# Justified in adding this third predictor
+anova(model2b, model3a)
+```
+
+
+## Fourth variable
+
+<br>
+
+Remember with two predictors, our R^2 variable was up at `0.2387`. Now, with three predictors, we are at `0.2464`. Ok, that seems reasonable as an improvement. So let's see how much improvement we get by adding a fourth variable. Again, check the residuals to see which ones we should try add.   
+
+<br> 
+
+```{r}
+wine_remaining_resid <- wine_both %>%
+  add_residuals(model3a) %>%
+  select(-c("quality", "alcohol", "volatile_acidity", "sulphates"))
+
+ggpairs(wine_remaining_resid) + 
+   theme_grey(base_size = 1) + 
+   theme(strip.text = element_text(size = 5))
+```
+
+
+
+<br>
+
+The only real contender variable here is `residual_sugar` (a variable we considered earlier) - let's try it out.
+
+<br>
+
+```{r}
+model4 <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar, data = wine_both)
+autoplot(model4)
+summary(model4)
+```
+
+
+Hmm, `model4` with `alcohol`, `volatile_acidity`, `sulphates` and `residual_sugar` has improved our model performance from `0.2464` (with three predictors) to `0.2541`. That's not bad. 
+
+<br>
+
+```{r}
+# Justified in adding this fourth predictor
+anova(model3a, model4)
+```
+
+<br>
+
+## Fifth variable
+
+<br>
+
+We are likely now pursuing variables with rather limited explanatory power, but let's check for one more main effect, and see how much predictive power it gives us. 
+
+<br>
+
+```{r}
+wine_remaining_resid <- wine_both %>%
+  add_residuals(model4) %>%
+  select(-c("quality", "alcohol", "volatile_acidity", "sulphates", "residual_sugar"))
+
+ggpairs(wine_remaining_resid) +
+   theme_grey(base_size = 1) + 
+   theme(strip.text = element_text(size = 5))
+```
+<br>
+
+It looks like `total_sulfur_dioxide` could be argued as top contender, let's check it out!
+
+<br> 
+
+```{r}
+model5 <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + total_sulfur_dioxide, data = wine_both)
+autoplot(model5)
+summary(model5)
+```
+
+Diagnostics look good. In terms of our regression summary, it is a significant explanatory variable, and it is significant. But hmmm... with four predictors, our overall R^2 was `0.2541`, and now with five we've only reached `0.2572`. Given that there is no real increase in explanatory performance, even though it's significant, we might want to remove it. Let's do this now.  
+
+It's also clear we aren't gaining anything by adding predictors. The final thing we can do is test for interactions. 
+
+<br>
+
+
+
+
+## Pair interaction
+
+Let's now think about possible pair interactions: for four main effect variables (`alcohol + volatile_acidity + sulphates + residual_sugar`), so we have six possible pair interactions. Let's test them out.
+
+  * alcohol:volatile_acidity
+  * alcohol:sulphates
+  * alcohol:residual_sugar
+  * volatile_acidity:sulphates
+  * volatile_acidity:residual_sugar
+  * sulphates:residual_sugar
+
+Let's test these now:
+
+<br> 
+
+```{r}
+model5pa <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + alcohol:volatile_acidity, data = wine_both)
+summary(model5pa)
+```
+
+```{r}
+model5pb <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + alcohol:sulphates, data = wine_both)
+summary(model5pb)
+```
+
+```{r}
+model5pc <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + alcohol:residual_sugar, data = wine_both)
+summary(model5pc)
+```
+
+```{r}
+model5pd <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + volatile_acidity:sulphates, data = wine_both)
+summary(model5pd)
+```
+
+```{r}
+model5pe <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + volatile_acidity:residual_sugar, data = wine_both)
+summary(model5pe)
+```
+
+```{r}
+model5pf <- lm(quality ~ alcohol + volatile_acidity + sulphates + residual_sugar + sulphates:residual_sugar, data = wine_both)
+summary(model5pf)
+```
+
+<br>
+
+So it looks like `model5pe` with the `alcohol`, `volatile_acidity`, `sulphates`, `residual_sugar`, and `volatile_acidity:residual_sugar` is the best, but only by a slight gain in multiple-$r^2$ due to the interaction.  
+
+<br>
+
+Let's do an anova to see if including this interaction in the model is justified:
+
+```{r}
+#  Justified in adding this interaction!
+anova(model4, model5pe)
+```
+
+
+<br>
+
+And so, our final model is:
+
+<center>
+
+`quality ~ alcohol + volatile_acidity + sulphates + residual_sugar +   volatile_acidity:residual_sugar`
+
+</center>
+
+<br>
+
+Although our model only explains ~26% of the variance in wine quality, it's the best we can get with the data available to us. Sometimes we don't get high R^2's but it's still informative!
+
+<br>
+
+
+# Automated approach : leaps
+
+If you wanted to make a predictive (automatic) model, you could follow the same process, using the following code:
+
+```{r}
+library(leaps)
+
+regsubsets_forward <- regsubsets(quality ~ ., # use all variables
+                                 data = wine_both, 
+                                 nvmax = 12, # model can have max of 12 predictors
+                                 method = "forward" # forward selection
+                                 )
+
+plot(regsubsets_forward)
+```
+<br>
+From the plot, it seems like the best performing model (i.e. top row) has `wine_colourwhite`,`volatile_acidity`, `residual_sugar`, `chlorides`, `sulphates`,  and `alcohol`. 
+
+```{r}
+summary(regsubsets_forward)$which[6,]
+
+```
+
+
+We can then examine the BIC scores plot them:
+
+<br>
+
+```{r}
+# see what's in the model
+sum_regsubsets_forward <- summary(regsubsets_forward)
+
+sum_regsubsets_forward$bic
+```
+
+
+```{r}
+# Plot the BIC scores
+plot(summary(regsubsets_forward)$bic, type = "b")
+
+```
+
+<br>
+
+From these, we know the BIC score is lowest (just!) at 6 different variables. We can check which variables these are:
+
+
+```{r}
+sum_regsubsets_forward$which[6, ]
+```
+<br>
+
+So the automated method has suggested a model with `wine_colourwhite`,`volatile_acidity`, `residual_sugar`, `chlorides`, `sulphates`,  and `alcohol`.  This has more predictors than we selected manually, but there is no 'correct' answer.
+
+What about if we limited it to four predictors?
+
+```{r}
+sum_regsubsets_forward$which[4, ]
+```
+
+The best 4 predictors are suggested as `volatile_acidity`, `residual_sugar`, `sulphates`,  and `alcohol`. 
+
+**This is the conclusion we came to using the manual method (before we added the interaction)**
+
+<br>
+
+As `leaps` doesn't include interactions, we could continue to test interactions in the same way as we did during the manual version above. 
+
+
+Or we could use the other, more intensive automated approach: `glmulti()` - but we won't do that here.
+
+
+
