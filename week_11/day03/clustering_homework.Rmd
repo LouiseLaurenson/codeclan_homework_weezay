@@ -1,0 +1,50 @@
+---
+title: "Clustering homework"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+This homework involves the `mall_customers.csv` data we've provided, based on data collected in a shopping mall. It will give you an opportunity to practice your new clustering skills.
+
+<br>
+
+# MVP
+
+Task 1
+
+* Do some exploratory analysis on the data. Comment on findings. 
+
+<br>
+
+Task 2
+
+* We are interested in creating a marketing campaign to target customers based on their spending score and annual income. Select an appropriate value for k and perform k-means clustering to find if there are meaningful clusters in the data to target the customers. 
+
+<br>
+
+Task 3
+
+* Visualise the clustering for your chosen value of k.
+
+<br>
+
+Task 4
+
+* Do you think the clustering seems a good fit for this data?
+
+<br>
+
+Task 5
+
+* Comment on the attributes of one or two of the clusters (maybe even give them an appropriate label if you like - similar to section 4.1 of the 'Segmentation & clustering intro' lesson where we saw labels such as "Super Fans" and "Tag-Alongs"). 
+
+
+
+
+
+

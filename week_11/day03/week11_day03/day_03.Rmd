@@ -1,0 +1,155 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(cluster)
+library(factoextra)
+library(dendextend)
+library(broom)
+```
+
+
+```{r}
+mall <- read_csv("../mall_customers.csv")
+```
+
+
+Task 1
+
+Do some exploratory analysis on the data. Comment on findings.
+
+
+```{r}
+mall %>% 
+  skimr::skim()
+```
+Data is well distributed
+Each row is a Customer which age, gender with there income and income score 
+
+
+Task 2
+
+We are interested in creating a marketing campaign to target customers based on their spending score and annual income. Select an appropriate value for k and perform k-means clustering to find if there are meaningful clusters in the data to target the customers.
+
+
+```{r}
+mall_scale <-
+mall %>% 
+  select(`Annual Income (k$)`, `Spending Score (1-100)`) %>% 
+  mutate(across(where(is.numeric), scale))
+```
+
+
+
+```{r}
+
+max_k <- 25
+
+mall_clusters <- tibble(k = 1:max_k) %>% 
+  mutate(kclust = map(k, ~ kmeans(mall_scale, .x, nstart = 50)),
+         tidied = map(kclust, tidy),
+         glanced = map(kclust, glance),
+         augmented = map(kclust, augment, mall_scale))
+
+```
+
+```{r}
+mall_clusters_out <- mall_clusters %>% 
+  unnest(glanced)
+```
+
+elbow:
+
+```{r}
+
+ggplot(mall_clusters_out, aes(x = k, y = tot.withinss)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(1, 20, by = 1))
+
+```
+silhouette 
+
+```{r}
+
+fviz_nbclust(mall_scale,
+             kmeans,
+             method = "silhouette",
+             nstart = 50)
+
+```
+```{r}
+
+fviz_nbclust(mall_scale,
+             kmeans,
+             method = "gap_stat",
+             nstart = 50,
+             k.max = 10)
+
+```
+I think 5 clusters 
+
+```{r}
+clustered_mall <- kmeans(mall_scale,
+                             centers = 5,
+                             nstart = 100)
+```
+
+
+```{r}
+
+mall_with_clusters <-
+augment(clustered_mall, col.names = colnames(mall_scale), data = mall_scale)
+
+```
+
+
+Task 3
+
+Visualise the clustering for your chosen value of k.
+
+
+```{r}
+mall_with_clusters %>% 
+  ggplot(aes(x = `Annual Income (k$)`, y = `Spending Score (1-100)`)) +
+  geom_point(aes(col = .cluster)) 
+
+```
+
+
+
+Task 4
+
+Do you think the clustering seems a good fit for this data?
+
+I think it looks pretty good! 
+the groups look how they would if my human eye was to do it! 
+
+
+
+Task 5
+
+Comment on the attributes of one or two of the clusters (maybe even give them an appropriate label if you like - similar to section 4.1 of the ‘Segmentation & clustering intro’ lesson where we saw labels such as “Super Fans” and “Tag-Alongs”).
+
+```{r}
+fun <-
+mall_with_clusters %>% 
+  mutate(.cluster = case_when(str_detect(
+                                         .cluster, "1") ~ "Big money no spend",
+                              str_detect(.cluster, "2") ~ "Big Money Big Spend",
+                              str_detect(.cluster, "3") ~ "No Money No spend",
+                              str_detect(.cluster, "4") ~ "No Money still spend!!",
+                              str_detect(.cluster, "5") ~ "Average at both"))
+
+
+```
+
+```{r}
+fun %>% 
+  ggplot(aes(x = `Annual Income (k$)`, y = `Spending Score (1-100)`)) +
+  geom_point(aes(col = .cluster)) 
+
+```
+
